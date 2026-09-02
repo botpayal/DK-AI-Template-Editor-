@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DK AI Studio — Admin Panel</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#070812;color:#fff;font-family:Inter,system-ui,Arial,sans-serif}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 10% 0%,#30245a,transparent 35%),radial-gradient(circle at 100% 20%,#063b4e,transparent 35%)}
+.app{position:relative;max-width:1200px;margin:auto;padding:18px 16px 60px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.logo{font-size:22px;font-weight:900}.logo span{color:#71ebff}
+.admin{padding:8px 12px;border-radius:999px;background:#70edff18;border:1px solid #70edff44;color:#78edff;font-size:12px;font-weight:800}
+.layout{display:grid;grid-template-columns:250px 1fr;gap:16px}
+.panel,.side{background:#ffffff08;border:1px solid #ffffff13;border-radius:22px;box-shadow:0 18px 50px #0006}
+.side{padding:14px;height:max-content}
+.side h3{margin:8px 10px 14px}
+.navbtn{width:100%;padding:12px;margin:3px 0;border:0;border-radius:12px;background:transparent;color:#aeb4c8;text-align:left;font-weight:750;cursor:pointer}
+.navbtn.active,.navbtn:hover{background:#72e9ff12;color:#72edff}
+.panel{padding:20px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.top h1{font-size:25px;margin:0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.stat{padding:15px;border-radius:15px;background:#ffffff08;border:1px solid #ffffff0f}
+.stat b{font-size:22px}.stat small{display:block;color:#858ca3;margin-top:4px}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{margin-bottom:13px}
+.field label{display:block;color:#9fa6bb;font-size:12px;font-weight:800;margin:0 0 7px}
+.field input,.field textarea,.field select{width:100%;padding:12px;border-radius:12px;border:1px solid #ffffff14;background:#050711;color:#fff;outline:0}
+.field textarea{min-height:95px;resize:vertical}
+.uploads{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.uploadbox{border:1px dashed #72e9ff40;background:#72e9ff07;border-radius:16px;padding:15px}
+.uploadbox input{width:100%;color:#9fa6bb}
+.preview{margin-top:8px;height:135px;border-radius:12px;background:#050711;overflow:hidden;display:grid;place-items:center;color:#626a82}
+.preview img,.preview video{width:100%;height:100%;object-fit:cover}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:850;cursor:pointer}
+.save{background:linear-gradient(135deg,#67eaff,#8c7dff);color:#061019}
+.secondary{background:#ffffff0d;color:#fff;border:1px solid #ffffff15}
+.danger{background:#ff4f6718;color:#ff8c9b;border:1px solid #ff4f6730}
+.list{margin-top:22px}
+.listhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px}
+.rows{display:grid;gap:8px}
+.row{display:grid;grid-template-columns:58px 1fr auto auto;gap:10px;align-items:center;padding:10px;border:1px solid #ffffff0e;background:#ffffff06;border-radius:14px}
+.mini{width:58px;height:45px;border-radius:9px;overflow:hidden;background:#15192a;display:grid;place-items:center}
+.mini img,.mini video{width:100%;height:100%;object-fit:cover}
+.row b{font-size:14px}.row small{display:block;color:#7f879e;margin-top:3px}
+.switch{width:48px;height:26px;border-radius:99px;border:0;background:#303548;padding:3px;cursor:pointer}
+.switch i{display:block;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+.switch.on{background:#39d8b0}.switch.on i{transform:translateX(22px)}
+.edit{padding:8px 11px;border:1px solid #ffffff15;background:#ffffff0b;color:#fff;border-radius:10px;font-weight:800}
+.toast{position:fixed;right:16px;bottom:16px;background:#131728;border:1px solid #ffffff18;padding:13px 16px;border-radius:13px;display:none;z-index:50}
+.toast.show{display:block}
+.login{position:fixed;inset:0;background:#05060d;z-index:20;display:flex;align-items:center;justify-content:center;padding:20px}
+.loginbox{width:min(420px,100%);background:#111425;border:1px solid #ffffff16;border-radius:25px;padding:24px}
+.loginbox h1{margin-top:0}
+.loginbox input{width:100%;padding:13px;margin:6px 0;border-radius:12px;border:1px solid #ffffff15;background:#070812;color:#fff}
+.hint{color:#7e869c;font-size:12px;line-height:1.5}
+.status{margin-top:10px;min-height:18px;font-size:12px;color:#78edff}
+@media(max-width:760px){
+.layout{grid-template-columns:1fr}.side{display:flex;overflow:auto;gap:5px}
+.side h3{display:none}.navbtn{white-space:nowrap;width:auto}
+.formgrid,.uploads,.stats{grid-template-columns:1fr}
+.row{grid-template-columns:50px 1fr auto}.row .edit{grid-column:2}.row .switch{grid-column:3;grid-row:1}
+.mini{width:50px;height:42px}.top{align-items:flex-start;flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<div class="login" id="login">
+  <div class="loginbox">
+    <div class="logo">DK <span>AI</span> Studio</div>
+    <h1>Admin Panel</h1>
+    <p class="hint">Enter your private server Admin Key. It is sent only as an authentication header to this backend.</p>
+    <input id="pin" type="password" placeholder="Admin Key"
+      onkeydown="if(event.key==='Enter')login()">
+    <button class="btn save" style="width:100%;margin-top:8px" onclick="login()">Enter Admin</button>
+    <div class="status" id="loginStatus"></div>
+  </div>
+</div>
+
+<div class="app" id="app" style="display:none">
+<header>
+  <div class="logo">DK <span>AI</span> Template Studio</div>
+  <div class="admin">● ADMIN MODE</div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h3>CONTROL</h3>
+  <button class="navbtn active" onclick="showEditor()">▣ Templates</button>
+  <button class="navbtn" onclick="alert('Dashboard analytics will be connected later.')">◈ Dashboard</button>
+  <button class="navbtn" onclick="alert('User management is Phase 5.')">● Users</button>
+  <button class="navbtn" onclick="logout()">↪ Logout</button>
+</aside>
+
+<main class="panel">
+  <div class="top">
+    <div><h1>Template Manager</h1><span class="hint">Online database + media storage</span></div>
+    <button class="btn secondary" onclick="newTemplate()">＋ New Template</button>
+  </div>
+
+  <div class="field">
+    <label>ONLINE BACKEND URL</label>
+    <input id="apiUrl" placeholder="Leave blank — use this server">
+    <small class="hint">Leave blank when this Admin Panel is opened from the same Render server.</small>
+    <button class="btn secondary" style="margin-top:8px" onclick="setApi()">Save Backend URL</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b id="total">100</b><small>Total Templates</small></div>
+    <div class="stat"><b id="active">100</b><small>Active</small></div>
+    <div class="stat"><b id="media">0</b><small>Media Added</small></div>
+  </div>
+
+  <div class="formgrid">
+    <div>
+      <div class="field"><label>TEMPLATE NUMBER</label><select id="tid" onchange="loadTemplate()"></select></div>
+      <div class="field"><label>TEMPLATE NAME</label><input id="name" placeholder="e.g. Neon Portrait"></div>
+      <div class="field"><label>CATEGORY</label>
+        <select id="cat"><option>Photo</option><option>Video</option><option>Reels</option><option>AI</option></select>
+      </div>
+      <div class="field"><label>DESCRIPTION</label><textarea id="desc" placeholder="Template description"></textarea></div>
+    </div>
+
+    <div>
+      <div class="field"><label>AI / EDITING INSTRUCTION</label>
+        <textarea id="instruction" placeholder="Example: Replace the subject photo and keep the cinematic background."></textarea>
+      </div>
+
+      <div class="uploads">
+        <div class="uploadbox">
+          <b>🖼️ Thumbnail</b>
+          <p class="hint">Upload / replace thumbnail</p>
+          <input id="image" type="file" accept="image/*" onchange="showFile('image','imagePreview')">
+          <div class="preview" id="imagePreview">No thumbnail</div>
+        </div>
+
+        <div class="uploadbox">
+          <b>🎬 Template Media</b>
+          <p class="hint">Upload an image or video</p>
+          <input id="mediaFile" type="file" accept="image/*,video/*" onchange="showFile('mediaFile','mediaPreview')">
+          <div class="preview" id="mediaPreview">No media</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn save" onclick="saveTemplate()">✓ Save Template</button>
+    <button class="btn secondary" onclick="previewTemplate()">👁 Preview</button>
+    <button class="btn danger" onclick="deleteTemplate()">Delete</button>
+  </div>
+
+  <div class="list">
+    <div class="listhead">
+      <h2 style="margin:0;font-size:18px">Templates #1–#100</h2>
+      <input id="filter" class="field" style="margin:0;width:170px" placeholder="Search..." oninput="renderList()">
+    </div>
+    <div class="rows" id="rows"></div>
+  </div>
+</main>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY='dk_admin_templates_v5';
+let templates=[];
+let API=location.origin;
+let ADMIN_KEY=sessionStorage.getItem('DK_ADMIN_KEY')||'';
+
+function baseDefaults(){
+  return Array.from({length:100},(_,i)=>({
+    id:i+1,
+    name:'Template #'+(i+1),
+    category:['Photo','Video','Reels','AI'][i%4],
+    desc:'Premium editable template',
+    instruction:'',
+    active:true,
+    image:'',
+    media:''
+  }));
+}
+
+function setApi(){
+  API=(apiUrl.value||location.origin).trim().replace(/\/$/,'');
+  localStorage.setItem('DK_AI_API_URL',API);
+  toast('Backend URL saved ✓');
+}
+
+function api(path){
+  return (API||'')+path;
+}
+
+function authHeaders(){
+  return ADMIN_KEY ? {'X-Admin-Key':ADMIN_KEY} : {};
+}
+
+async function login(){
+  const key=document.getElementById('pin').value.trim();
+  if(!key){
+    loginStatus.textContent='Enter your Admin Key.';
+    return;
+  }
+
+  loginStatus.textContent='Checking...';
+
+  try{
+    const r=await fetch(api('/api/health'),{cache:'no-store'});
+    if(!r.ok) throw new Error('Backend unavailable');
+
+    const remote=await r.json();
+    if(!Array.isArray(remote)) throw new Error('Invalid server response');
+
+    ADMIN_KEY=key;
+    sessionStorage.setItem('DK_ADMIN_KEY',ADMIN_KEY);
+    sessionStorage.setItem('dk_admin','1');
+
+    login.style.display='none';
+    app.style.display='block';
+    await init(remote);
+  }catch(e){
+    loginStatus.textContent='Cannot connect to backend. Check the Render URL.';
+  }
+}
+
+function logout(){
+  sessionStorage.removeItem('dk_admin');
+  sessionStorage.removeItem('DK_ADMIN_KEY');
+  location.reload();
+}
+
+async function init(remoteData=null){
+  const s=document.getElementById('tid');
+
+  if(remoteData){
+    templates=remoteData.map(t=>({
+      id:t.id,
+      name:t.name||('Template '+t.id),
+      category:t.category||'Photo',
+      desc:t.description||'',
+      instruction:t.instruction||'',
+      active:t.active!==false,
+      image:t.image_url||'',
+      media:t.video_url||''
+    }));
+  }else{
+    try{
+      const r=await fetch(api('/api/templates'),{cache:'no-store'});
+      if(!r.ok) throw new Error();
+      const remote=await r.json();
+      templates=remote.map(t=>({
+        id:t.id,
+        name:t.name||('Template '+t.id),
+        category:t.category||'Photo',
+        desc:t.description||'',
+        instruction:t.instruction||'',
+        active:t.active!==false,
+        image:t.image_url||'',
+        media:t.video_url||''
+      }));
+    }catch(e){
+      templates=baseDefaults();
+      toast('Backend unavailable');
+    }
+  }
+
+  s.innerHTML=templates.map(t=>`<option value="${t.id}">#${t.id}</option>`).join('');
+  apiUrl.value=API || location.origin;
+  loadTemplate();
+  renderList();
+  stats();
+}
+
+function current(){
+  return templates.find(t=>t.id==+document.getElementById('tid').value);
+}
+
+function loadTemplate(){
+  const t=current();
+  if(!t)return;
+
+  name.value=t.name;
+  cat.value=t.category;
+  desc.value=t.desc;
+  instruction.value=t.instruction;
+
+  image.value='';
+  mediaFile.value='';
+
+  imagePreview.dataset.value='';
+  mediaPreview.dataset.value='';
+
+  imagePreview.innerHTML=t.image?`<img src="${resolveUrl(t.image)}">`:'No thumbnail';
+  mediaPreview.innerHTML=t.media
+    ?`<video src="${resolveUrl(t.media)}" controls muted></video>`
+    :'No video media';
+}
+
+function resolveUrl(u){
+  if(!u)return '';
+  if(/^https?:\/\//i.test(u))return u;
+  return (API||location.origin)+u;
+}
+
+function showFile(inputId,previewId){
+  const f=document.getElementById(inputId).files[0];
+  if(!f)return;
+
+  const r=new FileReader();
+  r.onload=()=>{
+    document.getElementById(previewId).innerHTML=
+      f.type.startsWith('video/')
+      ?`<video src="${r.result}" controls muted></video>`
+      :`<img src="${r.result}">`;
+
+    document.getElementById(previewId).dataset.value=r.result;
+  };
+  r.readAsDataURL(f);
+}
+
+async function saveTemplate(){
+  const t=current();
+  if(!t)return;
+
+  const fd=new FormData();
+  fd.append('name',name.value.trim()||('Template #'+t.id));
+  fd.append('category',cat.value);
+  fd.append('description',desc.value.trim());
+  fd.append('instruction',instruction.value.trim());
+  fd.append('active',String(t.active));
+
+  const imageFile=document.getElementById('image').files[0];
+  const media=document.getElementById('mediaFile').files[0];
+
+  if(imageFile) fd.append('image',imageFile);
+  if(media && media.type.startsWith('video/')) fd.append('video',media);
+  if(media && media.type.startsWith('image/') && !imageFile) fd.append('image',media);
+
+  try{
+    toast('Saving...');
+
+    const r=await fetch(api('/api/templates/'+t.id),{
+      method:'POST',
+      headers:authHeaders(),
+      body:fd
+    });
+
+    if(r.status===401){
+      alert('Admin Key is incorrect or expired.');
+      return;
+    }
+
+    if(!r.ok){
+      const text=await r.text();
+      throw new Error(text||'Save failed');
+    }
+
+    const x=await r.json();
+
+    t.name=x.name;
+    t.category=x.category;
+    t.desc=x.description||'';
+    t.instruction=x.instruction||'';
+    t.active=x.active!==false;
+    t.image=x.image_url||t.image||'';
+    t.media=x.video_url||t.media||'';
+
+    loadTemplate();
+    renderList();
+    stats();
+    toast('Template #'+t.id+' saved online ✓');
+  }catch(e){
+    alert('Save failed. Check Admin Key and Render service.');
+  }
+}
+
+async function toggle(id){
+  const t=templates.find(x=>x.id===id);
+  if(!t)return;
+
+  const fd=new FormData();
+  fd.append('active',String(!t.active));
+
+  try{
+    const r=await fetch(api('/api/templates/'+id),{
+      method:'POST',
+      headers:authHeaders(),
+      body:fd
+    });
+
+    if(r.status===401){
+      alert('Admin Key is incorrect.');
+      return;
+    }
+
+    if(!r.ok)throw new Error();
+
+    const x=await r.json();
+    t.active=x.active!==false;
+    renderList();
+    stats();
+    toast('Template status updated ✓');
+  }catch(e){
+    alert('Could not update template.');
+  }
+}
+
+function edit(id){
+  tid.value=id;
+  loadTemplate();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+async function deleteTemplate(){
+  const t=current();
+  if(!t)return;
+  if(!confirm('Reset template #'+t.id+'?'))return;
+
+  try{
+    const r=await fetch(api('/api/templates/'+t.id),{
+      method:'DELETE',
+      headers:authHeaders()
+    });
+
+    if(r.status===401){
+      alert('Admin Key is incorrect.');
+      return;
+    }
+
+    if(!r.ok)throw new Error();
+
+    toast('Template #'+t.id+' reset ✓');
+    await init();
+  }catch(e){
+    alert('Delete/reset failed.');
+  }
+}
+
+function newTemplate(){
+  tid.value=templates.find(t=>!t.active)?.id||1;
+  loadTemplate();
+  document.getElementById('name').focus();
+}
+
+function previewTemplate(){
+  const t=current();
+  if(!t)return;
+
+  const media=t.media||t.image;
+  const w=window.open('','_blank');
+  if(!w)return;
+
+  w.document.write(`
+    <body style="margin:0;background:#070812;color:white;font-family:Arial;text-align:center;padding:30px">
+      <h1>#${t.id} — ${escapeHtml(t.name)}</h1>
+      <p>${escapeHtml(t.category)} • ${escapeHtml(t.desc)}</p>
+      ${media
+        ?`<video src="${resolveUrl(media)}" controls autoplay muted style="max-width:90%;max-height:70vh"></video>`
+        :'<p>No media uploaded</p>'}
+    </body>
+  `);
+}
+
+function renderList(){
+  const q=(filter.value||'').toLowerCase();
+  const a=templates.filter(t=>
+    (t.name+' '+t.id+' '+t.category).toLowerCase().includes(q)
+  );
+
+  rows.innerHTML=a.map(t=>`
+    <div class="row">
+      <div class="mini">${t.image?`<img src="${resolveUrl(t.image)}">`:'✦'}</div>
+      <div>
+        <b>#${t.id} — ${escapeHtml(t.name)}</b>
+        <small>${escapeHtml(t.category)} • ${t.active?'Published':'OFF'}</small>
+      </div>
+      <button class="switch ${t.active?'on':''}" onclick="toggle(${t.id})"><i></i></button>
+      <button class="edit" onclick="edit(${t.id})">Edit</button>
+    </div>
+  `).join('');
+}
+
+function stats(){
+  total.textContent=templates.length;
+  active.textContent=templates.filter(t=>t.active).length;
+  media.textContent=templates.filter(t=>t.image||t.media).length;
+}
+
+function toast(s){
+  const x=document.getElementById('toast');
+  x.textContent=s;
+  x.classList.add('show');
+  setTimeout(()=>x.classList.remove('show'),1800);
+}
+
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g,m=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+  }[m]));
+}
+
+function showEditor(){}
+
+if(sessionStorage.getItem('dk_admin')==='1' && sessionStorage.getItem('DK_ADMIN_KEY')){
+  ADMIN_KEY=sessionStorage.getItem('DK_ADMIN_KEY');
+  login.style.display='none';
+  app.style.display='block';
+  init();
+}
+</script>
+</body>
+</html>
